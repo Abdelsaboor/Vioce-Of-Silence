@@ -1,0 +1,156 @@
+voice-of-silence/
+│
+├── server.js                # Entry point (Express app)
+│
+├── config/
+│   └── db.js                # MongoDB connection
+│
+├── models/                  
+│   ├── User.js              # Users, roles, settings
+│   ├── Gesture.js           # Gesture patterns → letters
+│   ├── Chat.js              # Chat messages (text + voice)
+│   └── Video.js             # Educational video metadata
+│
+├── controllers/             
+│   ├── authController.js    # Register, login, JWT
+│   ├── userController.js    # User management
+│   ├── gloveController.js   # Sensor → letter prediction
+│   ├── speechController.js  # Text-to-speech / speech logic
+│   ├── chatController.js    # Chat send/receive
+│   └── videoController.js   # List & stream educational videos
+│
+├── routes/                  # API endpoints
+│   ├── authRoutes.js        # /api/auth
+│   ├── userRoutes.js        # /api/users
+│   ├── gloveRoutes.js       # /api/glove
+│   ├── speechRoutes.js      # /api/speech
+│   ├── chatRoutes.js        # /api/chat
+│   └── videoRoutes.js       # /api/videos
+│
+├── services/                # Core backend services
+│   ├── bluetoothService.js  # BLE (optional, if server reads glove)
+│   ├── gestureService.js    # Sensor → AI model → letter
+│   ├── aiService.js         # TensorFlow or ONNX model loader
+│   ├── ttsService.js        # Text-to-speech (Google/Azure/local)
+│   └── videoService.js      # Video management
+│
+├── middleware/
+│   ├── authMiddleware.js    # JWT protection
+│   └── uploadMiddleware.js  # Multer (audio/video uploads)
+│
+├── utils/
+│   ├── logger.js            # Logs
+│   └── response.js          # Common API responses
+│
+├── ai/
+│   ├── models/              # Saved ML models
+│   └── datasets/            # Small datasets (or cloud links)
+│
+├── public/
+│   └── audio/
+│       ├── chat/            # Voice messages
+│       └── tts/             # Text-to-speech output files
+│
+└── package.json
+
+
+_________________________________________________________________________________________________________________________________________________________________________
+
+                      ┌───────────────────────────┐
+                      │   Smart Glove (Sensors)    │
+                      └─────────────┬─────────────┘
+                                    │ Bluetooth
+                                    ▼
+                     ┌───────────────────────────────┐
+                     │  Mobile (Flutter) / Web App   │
+                     └─────────────┬─────────────────┘
+                                    │  HTTP / WebSockets
+                                    ▼
+                        ┌────────────────────────┐
+                        │   Node.js API Server    │
+                        │     (Express + JWT)     │
+                        └─────────────┬──────────┘
+          ┌───────────────────────────┼────────────────────────────┐
+          │                           │                            │
+          ▼                           ▼                            ▼
+┌───────────────────┐      ┌─────────────────────┐        ┌───────────────────┐
+│   Controllers      │      │    Services Layer   │        │    Socket.IO      │
+│ (auth/chat/glove)  │ ◄──► │ (AI, TTS, Gesture)  │ ◄──►    │  Real-time Chat   │
+└─────────┬──────────┘      └──────────┬──────────┘        └─────────┬─────────┘
+          │                             │                             │
+          ▼                             ▼                             ▼
+ ┌────────────────┐           ┌────────────────────┐         ┌─────────────────┐
+ │    MongoDB     │           │ AI Models (TF/ONNX)│         │   Chat Clients  │
+ │ Users/Chat/etc │           │  /ai/models/       │         │  Notifications   │
+ └────────────────┘           └────────────────────┘         └─────────────────┘
+
+
+_____________________________________________________________________________________________________________________________________________________________________
+Smart Glove (flex sensors)
+        │
+        ▼ Bluetooth
+Flutter App
+        │ HTTP POST
+        ▼
+POST /api/glove/data
+        │
+        ▼
+gloveController
+        │
+gestureService
+        │
+aiService (load ML model)
+        │
+Predict Letter → e.g. "ن"
+        │
+Return to Flutter → update UI
+
+
+___________________________________________________________________________________________________________________________________________________________________
+
+Flutter App (User taps "Speak")
+         │
+         ▼
+POST /api/speech/tts
+{ text: "السلام عليكم" }
+         │
+         ▼
+speechController
+         │
+         ▼
+ttsService (Google/Azure/local)
+         │
+Generate audio file
+         │
+Save to /public/audio/tts/
+         │
+Return audio URL to Flutter
+         │
+Flutter plays the sound
+
+___________________________________________________________________________________________________________________________________________________________________
+User A → POST /api/chat/send
+       → chatController
+       → Save to MongoDB
+       → Socket.IO broadcast
+       → User B receives message instantly
+
+______________________________________________________________________________________________________________________________________________________________________
+
+User A records audio
+       │
+       ▼
+POST /api/chat/voice (form-data)
+       │
+uploadMiddleware (multer)
+       │
+chatController
+       │
+Save audio → /public/audio/chat/
+       │
+Save message metadata in MongoDB
+       │
+Emit via Socket.IO → User B receives
+
+
+

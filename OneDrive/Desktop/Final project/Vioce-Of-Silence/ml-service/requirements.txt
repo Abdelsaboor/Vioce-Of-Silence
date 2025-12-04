@@ -1,0 +1,4 @@
+# List your dependencies here
+fastapi
+uvicorn
+pytorch
