@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { Link } from "react-router-dom";
 import { 
   LayoutDashboard, 
   GitBranch, 
@@ -6,7 +7,8 @@ import {
   Activity, 
   Settings2, 
   Grid3X3,
-  Hand
+  Hand,
+  Smartphone
 } from "lucide-react";
 
 interface SidebarProps {
@@ -41,6 +43,22 @@ export function Sidebar({ activeSection, onSectionChange }: SidebarProps) {
 
       {/* Navigation */}
       <nav className="flex-1 p-4 space-y-1">
+        {/* Links to standalone pages */}
+        <Link
+          to="/navigation"
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 bg-secondary/20 text-secondary hover:bg-secondary/30"
+        >
+          <Smartphone className="w-4 h-4" />
+          App UI Preview
+        </Link>
+        <Link
+          to="/page-mapping"
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 bg-secondary/20 text-secondary hover:bg-secondary/30 mb-3"
+        >
+          <Layers className="w-4 h-4" />
+          Page Mapping
+        </Link>
+
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeSection === item.id;
